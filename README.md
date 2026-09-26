@@ -2,7 +2,7 @@
 
 **A real-time collaborative workspace — Kanban boards, live documents, and a shared whiteboard your whole team edits together, with presence, chat, and an activity feed.**
 
-[![CI](https://github.com/Kushe602/CollabSpace/actions/workflows/ci.yml/badge.svg)](https://github.com/Kushe602/CollabSpace/actions/workflows/ci.yml)
+[![CI](https://github.com/Kushe602/Real-Time-Collaborative-App/actions/workflows/ci.yml/badge.svg)](https://github.com/Kushe602/Real-Time-Collaborative-App/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
