@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — {{ app_name }}{% endblock %}
+{% block body %}
+<div class="mx-auto max-w-5xl px-6">
+  <header class="flex items-center justify-between py-5">
+    <a href="/" class="flex items-center gap-2 text-lg font-semibold">
+      <span class="grid h-8 w-8 place-items-center rounded-lg bg-indigo-500">◈</span>
+      {{ app_name }}
+    </a>
+    <div class="flex items-center gap-3">
+      <span class="grid h-8 w-8 place-items-center rounded-full text-xs font-semibold"
+            style="background: {{ user.color }}">{{ user.display_name | initials }}</span>
+      <span class="text-sm text-slate-300">{{ user.display_name }}</span>
+      <form method="post" action="/logout">
+        <button class="rounded-lg border border-slate-700 px-3 py-1.5 text-sm hover:border-slate-500">Log out</button>
+      </form>
+    </div>
+  </header>
+
+  <main class="py-6">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold">Your workspaces</h1>
+    </div>
+
+    <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_20rem]">
+      <section>
+        {% if workspaces %}
+          <div class="grid gap-4 sm:grid-cols-2">
+            {% for ws in workspaces %}
+              <a href="/workspaces/{{ ws.id }}"
+                 class="group rounded-2xl border border-slate-800 bg-slate-900/60 p-5 hover:border-indigo-500/60">
+                <h2 class="font-semibold group-hover:text-indigo-300">{{ ws.name }}</h2>
+                <p class="mt-1 text-xs text-slate-500">Created {{ ws.created_at.strftime("%b %d, %Y") }}</p>
+                <p class="mt-4 text-sm text-indigo-400">Open workspace →</p>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="rounded-2xl border border-dashed border-slate-700 p-10 text-center text-slate-400">
+            No workspaces yet. Create your first one to start collaborating.
+          </div>
+        {% endif %}
+      </section>
+
+      <aside class="space-y-4">
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+          <h3 class="font-semibold">New workspace</h3>
+          <form method="post" action="/workspaces" class="mt-3 flex gap-2">
+            <input name="name" placeholder="Marketing team" required
+                   class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+            <button class="rounded-lg bg-indigo-500 px-3 py-2 text-sm font-medium hover:bg-indigo-400">Create</button>
+          </form>
+        </div>
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+          <h3 class="font-semibold">Join a workspace</h3>
+          <p class="mt-1 text-xs text-slate-500">Paste a workspace code a teammate shared.</p>
+          <form method="post" action="/workspaces/join" class="mt-3 flex gap-2">
+            <input name="code" placeholder="Workspace code" required
+                   class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+            <button class="rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium hover:border-slate-500">Join</button>
+          </form>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+<div data-list="{{ lst.id }}"
+     class="cs-col flex max-h-full w-72 flex-none flex-col rounded-xl border border-slate-800 bg-slate-900/50">
+  <div class="flex items-center justify-between px-3 py-2">
+    <span class="text-sm font-semibold">{{ lst.title }}</span>
+    <span data-count class="rounded bg-slate-800 px-1.5 text-xs text-slate-400">{{ cards | length }}</span>
+  </div>
+  <div data-cards class="cs-scroll flex min-h-[3rem] flex-1 flex-col gap-2 overflow-y-auto px-2 pb-2">
+    {% for card in cards %}{% include "partials/card.html" %}{% endfor %}
+  </div>
+  <form data-add-card class="border-t border-slate-800 p-2">
+    <input name="title" autocomplete="off" placeholder="+ Add a card"
+           class="w-full rounded-md border border-transparent bg-transparent px-2 py-1 text-sm outline-none placeholder:text-slate-600 hover:border-slate-700 focus:border-indigo-500" />
+  </form>
+</div>

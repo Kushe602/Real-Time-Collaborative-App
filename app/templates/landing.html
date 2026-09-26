@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ app_name }} — collaborate in real time{% endblock %}
+{% block body %}
+<div class="min-h-full">
+  <header class="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+    <div class="flex items-center gap-2 text-lg font-semibold">
+      <span class="grid h-8 w-8 place-items-center rounded-lg bg-indigo-500">◈</span>
+      {{ app_name }}
+    </div>
+    <nav class="flex items-center gap-3 text-sm">
+      {% if user %}
+        <a href="/dashboard" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium hover:bg-indigo-400">Open dashboard</a>
+      {% else %}
+        <a href="/login" class="px-4 py-2 text-slate-300 hover:text-white">Log in</a>
+        <a href="/register" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium hover:bg-indigo-400">Get started</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-6">
+    <section class="py-20 text-center">
+      <p class="mb-4 inline-block rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-400">
+        WebSockets · live presence · zero page reloads
+      </p>
+      <h1 class="mx-auto max-w-3xl text-5xl font-bold leading-tight tracking-tight">
+        One shared space your whole team edits
+        <span class="bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">together, live.</span>
+      </h1>
+      <p class="mx-auto mt-6 max-w-2xl text-lg text-slate-400">
+        Kanban boards, collaborative docs, a shared whiteboard, and team chat — all in real
+        time over a single WebSocket per workspace. See who's online and where their cursor is.
+      </p>
+      <div class="mt-8 flex justify-center gap-3">
+        <a href="{{ '/dashboard' if user else '/register' }}"
+           class="rounded-lg bg-indigo-500 px-6 py-3 font-medium hover:bg-indigo-400">
+          {{ 'Go to your workspaces' if user else 'Start collaborating — free' }}
+        </a>
+        <a href="#features" class="rounded-lg border border-slate-700 px-6 py-3 font-medium hover:border-slate-500">
+          See features
+        </a>
+      </div>
+    </section>
+
+    <section id="features" class="grid gap-4 pb-24 sm:grid-cols-2 lg:grid-cols-4">
+      {% set cards = [
+        ("🗂️", "Kanban boards", "Drag cards across lists and watch them move on every screen instantly."),
+        ("📝", "Live docs", "Co-author markdown with live cursors and last-write-wins sync."),
+        ("🎨", "Whiteboard", "Sticky notes and shapes you can drag around together."),
+        ("💬", "Chat & presence", "Team chat, an activity feed, and avatars of who's online."),
+      ] %}
+      {% for icon, title, body in cards %}
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+          <div class="text-3xl">{{ icon }}</div>
+          <h3 class="mt-3 font-semibold">{{ title }}</h3>
+          <p class="mt-1 text-sm text-slate-400">{{ body }}</p>
+        </div>
+      {% endfor %}
+    </section>
+  </main>
+</div>
+{% endblock %}

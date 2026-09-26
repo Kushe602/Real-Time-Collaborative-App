@@ -1,0 +1,19 @@
+<div data-whiteboard="{{ wb.id }}" class="flex h-full flex-col">
+  <div class="mb-3 flex flex-none items-center gap-2">
+    <span class="text-lg">🎨</span>
+    <span class="font-semibold text-slate-200">{{ wb.title }}</span>
+    <div class="ml-3 flex items-center gap-1">
+      <button type="button" data-wb-add="note"
+              class="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-slate-500">+ Note</button>
+      <button type="button" data-wb-add="rect"
+              class="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-slate-500">▭ Rect</button>
+      <button type="button" data-wb-add="ellipse"
+              class="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-slate-500">◯ Ellipse</button>
+    </div>
+    <span class="ml-auto text-xs text-slate-500">Drag to move · double-click a note to edit</span>
+  </div>
+  <div data-wb-canvas class="cs-wb-canvas cs-scroll relative min-h-0 flex-1 overflow-auto rounded-xl border border-slate-800 bg-slate-950">
+    <div data-wb-surface class="relative" style="width: 2400px; height: 1600px;"></div>
+  </div>
+  <script type="application/json" data-wb-elements>{{ elements | tojson }}</script>
+</div>

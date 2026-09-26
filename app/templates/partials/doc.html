@@ -1,0 +1,19 @@
+<div data-doc="{{ doc.id }}" data-version="{{ doc.version }}" class="flex h-full flex-col">
+  <div class="mb-3 flex flex-none items-center justify-between gap-3">
+    <div class="flex items-center gap-2">
+      <span class="text-lg">📝</span>
+      <span class="font-semibold text-slate-200">{{ doc.title }}</span>
+      <span data-doc-version class="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-400">v{{ doc.version }}</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-xs text-slate-500">Editing now</span>
+      <div data-doc-presence class="flex -space-x-2"></div>
+    </div>
+  </div>
+  <div class="grid min-h-0 flex-1 grid-cols-2 gap-4">
+    <textarea data-doc-input spellcheck="false"
+              placeholder="# Start writing…&#10;&#10;Markdown supported. Everyone in this workspace sees your edits live."
+              class="cs-scroll h-full w-full resize-none rounded-xl border border-slate-800 bg-slate-950 p-4 font-mono text-sm leading-relaxed text-slate-200 outline-none focus:border-indigo-500">{{ doc.content }}</textarea>
+    <div data-doc-preview class="cs-doc-preview cs-scroll h-full w-full overflow-y-auto rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-sm text-slate-200"></div>
+  </div>
+</div>

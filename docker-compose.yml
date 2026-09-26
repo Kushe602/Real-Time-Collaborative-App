@@ -1,0 +1,31 @@
+# CollabSpace with Postgres. `docker compose up --build` then open http://localhost:8000.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: collab
+      POSTGRES_PASSWORD: collab
+      POSTGRES_DB: collabspace
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U collab -d collabspace"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # asyncpg driver → the app's SQLAlchemy async engine talks to Postgres.
+      DATABASE_URL: postgresql+asyncpg://collab:collab@db:5432/collabspace
+      # Override with a real secret in any non-local deployment.
+      SECRET_KEY: ${SECRET_KEY:-dev-only-change-me-to-a-long-random-value-32b}
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:

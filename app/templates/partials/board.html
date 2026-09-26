@@ -1,0 +1,10 @@
+<div data-board="{{ board.id }}" class="flex h-full items-start gap-4">
+  {% for lst in lists %}
+    {% set cards = cards_by_list[lst.id] %}
+    {% include "partials/board_list.html" %}
+  {% endfor %}
+  <form data-add-list class="w-72 flex-none">
+    <input name="title" autocomplete="off" placeholder="+ Add another list"
+           class="w-full rounded-xl border border-dashed border-slate-700 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-slate-500 focus:border-indigo-500" />
+  </form>
+</div>

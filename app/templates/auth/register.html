@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Sign up — {{ app_name }}{% endblock %}
+{% block body %}
+<div class="grid min-h-full place-items-center px-6">
+  <div class="w-full max-w-sm">
+    <a href="/" class="mb-6 flex items-center justify-center gap-2 text-lg font-semibold">
+      <span class="grid h-8 w-8 place-items-center rounded-lg bg-indigo-500">◈</span>
+      {{ app_name }}
+    </a>
+    <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-8">
+      <h1 class="text-xl font-semibold">Create your account</h1>
+      <p class="mt-1 text-sm text-slate-400">Start collaborating in seconds.</p>
+
+      {% if error %}
+        <div class="mt-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+          {{ error }}
+        </div>
+      {% endif %}
+
+      <form method="post" action="/register" class="mt-6 space-y-4">
+        <div>
+          <label class="block text-sm text-slate-300" for="display_name">Display name</label>
+          <input id="display_name" name="display_name" required autofocus
+                 class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+        </div>
+        <div>
+          <label class="block text-sm text-slate-300" for="email">Email</label>
+          <input id="email" name="email" type="email" required
+                 class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+        </div>
+        <div>
+          <label class="block text-sm text-slate-300" for="password">Password</label>
+          <input id="password" name="password" type="password" required minlength="8"
+                 class="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+          <p class="mt-1 text-xs text-slate-500">At least 8 characters.</p>
+        </div>
+        <button type="submit"
+                class="w-full rounded-lg bg-indigo-500 px-4 py-2 font-medium hover:bg-indigo-400">
+          Create account
+        </button>
+      </form>
+    </div>
+    <p class="mt-4 text-center text-sm text-slate-400">
+      Already have an account? <a href="/login" class="text-indigo-400 hover:underline">Log in</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

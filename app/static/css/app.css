@@ -1,0 +1,141 @@
+/* CollabSpace custom styles layered on top of the Tailwind CDN build. */
+
+:root {
+  --cs-bg: #0f172a;
+  --cs-panel: #1e293b;
+  --cs-border: #334155;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Thin, unobtrusive scrollbars for the board columns and sidebars. */
+.cs-scroll::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.cs-scroll::-webkit-scrollbar-thumb {
+  background: var(--cs-border);
+  border-radius: 9999px;
+}
+.cs-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Card being dragged by SortableJS. */
+.cs-ghost {
+  opacity: 0.4;
+}
+.cs-drag {
+  transform: rotate(2deg);
+}
+
+/* Live presence cursor rendered over docs / whiteboard. */
+.cs-cursor {
+  position: absolute;
+  pointer-events: none;
+  z-index: 50;
+  transition: transform 0.08s linear;
+}
+.cs-cursor-label {
+  font-size: 11px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #fff;
+  white-space: nowrap;
+  transform: translate(8px, 8px);
+}
+
+/* Connection status pill. */
+.cs-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+  animation: cs-pulse 2s infinite;
+}
+.cs-live-dot.cs-offline {
+  background: #ef4444;
+  animation: none;
+}
+
+@keyframes cs-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* Avatar of a teammate who just edited the current doc. */
+.cs-editing {
+  box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+  animation: cs-edit-pulse 1.2s ease-out infinite;
+}
+@keyframes cs-edit-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.6); }
+  70% { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+/* Rendered-markdown preview pane for docs. */
+.cs-doc-preview h1 { font-size: 1.5rem; font-weight: 700; margin: 0.6em 0 0.3em; }
+.cs-doc-preview h2 { font-size: 1.25rem; font-weight: 700; margin: 0.6em 0 0.3em; }
+.cs-doc-preview h3 { font-size: 1.05rem; font-weight: 600; margin: 0.6em 0 0.3em; }
+.cs-doc-preview p { margin: 0.5em 0; }
+.cs-doc-preview ul { margin: 0.5em 0; padding-left: 1.25em; list-style: disc; }
+.cs-doc-preview li { margin: 0.15em 0; }
+.cs-doc-preview a { color: #818cf8; text-decoration: underline; }
+.cs-doc-preview code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85em;
+  background: #0f172a;
+  border: 1px solid var(--cs-border);
+  border-radius: 4px;
+  padding: 0.05em 0.35em;
+}
+.cs-doc-preview strong { font-weight: 700; }
+.cs-doc-preview em { font-style: italic; }
+
+/* Whiteboard canvas + elements. */
+.cs-wb-canvas {
+  background-color: #0b1220;
+  background-image: radial-gradient(circle, #1e293b 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.cs-wb-el {
+  position: absolute;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+.cs-wb-el:active { cursor: grabbing; }
+.cs-wb-note {
+  border-radius: 8px;
+  padding: 8px;
+  color: #1f2937;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+  line-height: 1.35;
+}
+.cs-wb-note-text {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.cs-wb-shape { background: transparent; border: 2px solid #64748b; border-radius: 6px; }
+.cs-cursor-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}

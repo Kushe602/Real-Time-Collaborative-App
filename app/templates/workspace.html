@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}{{ workspace.name }} — {{ app_name }}{% endblock %}
+{% block body %}
+<div class="flex h-full">
+  <!-- Left sidebar: surfaces + members -->
+  <aside class="flex w-64 flex-none flex-col border-r border-slate-800 bg-slate-900/40">
+    <div class="border-b border-slate-800 p-4">
+      <a href="/dashboard" class="text-xs text-slate-500 hover:text-slate-300">← Dashboard</a>
+      <h1 class="mt-1 truncate text-lg font-semibold">{{ workspace.name }}</h1>
+      <button type="button"
+              onclick="navigator.clipboard.writeText('{{ workspace.id }}'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy invite code',1200)"
+              class="mt-2 w-full rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-400 hover:border-slate-500">
+        Copy invite code
+      </button>
+    </div>
+
+    <div class="cs-scroll flex-1 overflow-y-auto p-3 text-sm">
+      {% set groups = [("board", "Boards", boards), ("doc", "Docs", docs), ("whiteboard", "Whiteboards", whiteboards)] %}
+      {% for kind, label, items in groups %}
+        <div class="mb-4">
+          <div class="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-slate-500">{{ label }}</div>
+          <ul class="space-y-0.5">
+            {% for item in items %}
+              <li>
+                <button type="button" data-surface="{{ kind }}:{{ item.id }}"
+                        class="cs-surface-link flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-slate-800">
+                  <span class="text-slate-500">
+                    {{ {"board": "🗂️", "doc": "📝", "whiteboard": "🎨"}[kind] }}
+                  </span>
+                  <span class="truncate">{{ item.title }}</span>
+                </button>
+              </li>
+            {% endfor %}
+          </ul>
+          <form method="post" action="/workspaces/{{ workspace.id }}/surfaces" class="mt-1 flex gap-1 px-1">
+            <input type="hidden" name="kind" value="{{ kind }}" />
+            <input name="title" placeholder="New {{ kind }}…"
+                   class="w-full rounded border border-slate-800 bg-slate-950 px-2 py-1 text-xs outline-none focus:border-indigo-500" />
+            <button class="rounded border border-slate-700 px-2 text-xs hover:border-slate-500">+</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="border-t border-slate-800 p-3">
+      <div class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Members</div>
+      <ul class="space-y-1">
+        {% for m in members %}
+          <li class="flex items-center gap-2 text-sm">
+            <span class="grid h-6 w-6 flex-none place-items-center rounded-full text-[10px] font-semibold"
+                  style="background: {{ m.color }}">{{ m.display_name | initials }}</span>
+            <span class="truncate text-slate-300">{{ m.display_name }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Center: the active surface -->
+  <main class="flex min-w-0 flex-1 flex-col">
+    <div class="flex items-center justify-between border-b border-slate-800 px-5 py-3">
+      <div id="surface-title" class="font-medium text-slate-300">Select a surface to start</div>
+      <div class="flex items-center gap-3">
+        <div id="presence" class="flex -space-x-2"></div>
+        <span class="flex items-center gap-1.5 text-xs text-slate-400">
+          <span id="live-dot" class="cs-live-dot cs-offline"></span>
+          <span id="live-text">connecting…</span>
+        </span>
+      </div>
+    </div>
+    <div id="surface-root" class="cs-scroll relative min-h-0 flex-1 overflow-auto p-6">
+      <div class="grid h-full place-items-center text-center text-slate-500">
+        <div>
+          <div class="text-4xl">◈</div>
+          <p class="mt-3">Pick a board, doc, or whiteboard from the left to open it here.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Right rail: activity feed + team chat -->
+  <aside class="flex w-72 flex-none flex-col border-l border-slate-800 bg-slate-900/40">
+    <div class="border-b border-slate-800 p-3">
+      <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Activity</div>
+      <ul id="activity-feed" class="cs-scroll mt-2 max-h-48 space-y-1.5 overflow-y-auto text-xs text-slate-400">
+        {% for a in activities %}
+          <li>
+            <span class="text-slate-300">{{ member_names.get(a.user_id, "Someone") }}</span>
+            {{ a.summary }}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="flex min-h-0 flex-1 flex-col">
+      <div class="border-b border-slate-800 p-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Chat</div>
+      <div id="chat-log" class="cs-scroll flex-1 space-y-2 overflow-y-auto p-3 text-sm">
+        <p data-empty class="text-xs text-slate-600">Messages appear here in real time.</p>
+      </div>
+      <form id="chat-form" class="border-t border-slate-800 p-3">
+        <input id="chat-input" autocomplete="off" placeholder="Message the team…"
+               class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-indigo-500" />
+      </form>
+    </div>
+  </aside>
+</div>
+
+<script>
+  window.CS = {
+    workspaceId: {{ workspace.id | tojson }},
+    me: {
+      user_id: {{ user.id | tojson }},
+      display_name: {{ user.display_name | tojson }},
+      color: {{ user.color | tojson }}
+    }
+  };
+</script>
+<script src="/static/js/collab.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script src="/static/js/board.js"></script>
+<script src="/static/js/doc.js"></script>
+<script src="/static/js/whiteboard.js"></script>
+{% endblock %}

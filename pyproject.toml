@@ -1,0 +1,72 @@
+[project]
+name = "collabspace"
+version = "0.1.0"
+description = "CollabSpace — a real-time collaborative workspace: Kanban boards, live docs, and a shared whiteboard your whole team edits together over WebSockets."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "websockets>=13.0",
+    "sqlalchemy[asyncio]>=2.0",
+    "aiosqlite>=0.20",
+    "asyncpg>=0.29",
+    "pydantic-settings>=2.4",
+    "python-multipart>=0.0.9",
+    "jinja2>=3.1",
+    "PyJWT>=2.9",
+    "bcrypt>=4.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "httpx>=0.27",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.setuptools.package-data]
+app = [
+    "templates/*.html",
+    "templates/partials/*.html",
+    "static/js/*.js",
+    "static/css/*.css",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "W"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's dependency-injection API is designed to be called in argument
+# defaults (Depends/Form/...), so B008 is a false positive for it.
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.File",
+    "fastapi.Form",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Body",
+    "fastapi.Header",
+    "fastapi.Cookie",
+    "fastapi.WebSocket",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# conftest sets environment variables before importing the app on purpose.
+"tests/conftest.py" = ["E402"]
