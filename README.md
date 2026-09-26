@@ -2,9 +2,15 @@
 
 **A real-time collaborative workspace — Kanban boards, live documents, and a shared whiteboard your whole team edits together, with presence, chat, and an activity feed.**
 
+[![Live demo](https://img.shields.io/badge/live%20demo-online-brightgreen)](https://collabspace-y3gw.onrender.com)
 [![CI](https://github.com/Kushe602/Real-Time-Collaborative-App/actions/workflows/ci.yml/badge.svg)](https://github.com/Kushe602/Real-Time-Collaborative-App/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
+
+> **Live demo:** https://collabspace-y3gw.onrender.com — hosted on a free
+> instance, so the first request may take ~50s to wake it. Register two accounts
+> in two browsers, create a workspace, share the invite code, and watch edits
+> sync live.
 
 CollabSpace is a single FastAPI application where a team creates a workspace and
 collaborates across three live surfaces at once. Everything is real-time: cards
