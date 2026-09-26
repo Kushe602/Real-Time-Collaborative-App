@@ -7,11 +7,20 @@
     <div class="border-b border-slate-800 p-4">
       <a href="/dashboard" class="text-xs text-slate-500 hover:text-slate-300">← Dashboard</a>
       <h1 class="mt-1 truncate text-lg font-semibold">{{ workspace.name }}</h1>
-      <button type="button"
-              onclick="navigator.clipboard.writeText('{{ workspace.id }}'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy invite code',1200)"
-              class="mt-2 w-full rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-400 hover:border-slate-500">
-        Copy invite code
-      </button>
+      <div class="mt-2 space-y-1">
+        {% if invite %}
+          <button type="button" data-invite-code="{{ invite.code }}"
+                  onclick="navigator.clipboard.writeText('{{ invite.code }}'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy invite code',1200)"
+                  class="w-full rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-400 hover:border-slate-500">
+            Copy invite code
+          </button>
+        {% endif %}
+        <form method="post" action="/workspaces/{{ workspace.id }}/invites">
+          <button class="w-full rounded-lg border border-slate-800 px-2 py-1 text-xs text-slate-500 hover:border-slate-600">
+            {% if invite %}Generate new code{% else %}Generate invite code{% endif %}
+          </button>
+        </form>
+      </div>
     </div>
 
     <div class="cs-scroll flex-1 overflow-y-auto p-3 text-sm">

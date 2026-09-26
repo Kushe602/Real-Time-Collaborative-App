@@ -9,6 +9,7 @@ from fastapi.responses import RedirectResponse, Response
 from app.database import init_db
 from app.dependencies import NotAuthenticated
 from app.realtime import socket
+from app.realtime.manager import manager
 from app.routers import auth, surfaces, workspaces
 from app.web import static_files
 
@@ -16,7 +17,11 @@ from app.web import static_files
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
-    yield
+    await manager.startup()
+    try:
+        yield
+    finally:
+        await manager.shutdown()
 
 
 app = FastAPI(title="CollabSpace", lifespan=lifespan)

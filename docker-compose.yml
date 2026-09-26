@@ -14,14 +14,27 @@ services:
       timeout: 3s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   web:
     build: .
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       # asyncpg driver → the app's SQLAlchemy async engine talks to Postgres.
       DATABASE_URL: postgresql+asyncpg://collab:collab@db:5432/collabspace
+      # Fan WebSocket broadcasts + presence through Redis so the app can scale
+      # to multiple processes/replicas. Omit to run single-process in-memory.
+      REDIS_URL: redis://redis:6379/0
       # Override with a real secret in any non-local deployment.
       SECRET_KEY: ${SECRET_KEY:-dev-only-change-me-to-a-long-random-value-32b}
     ports:

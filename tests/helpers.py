@@ -44,6 +44,13 @@ def surface_ids(html: str, kind: str) -> list[str]:
     return re.findall(rf'data-surface="{kind}:([0-9a-fA-F]+)"', html)
 
 
+def invite_code(html: str) -> str:
+    """Pull the active invite code out of a rendered workspace shell."""
+    m = re.search(r'data-invite-code="([^"]+)"', html)
+    assert m, "no invite code found on the workspace page"
+    return m.group(1)
+
+
 def list_ids(html: str) -> list[str]:
     """Pull board-list ids out of a rendered board partial."""
     return re.findall(r'data-list="([0-9a-fA-F]+)"', html)

@@ -64,7 +64,12 @@ async def workspace_ws(ws: WebSocket, workspace_id: str):
     await manager.connect(workspace_id, ws, user)
     me = {"user_id": user.id, "display_name": user.display_name, "color": user.color}
     await ws.send_json(
-        {"channel": "presence", "type": "roster", "members": manager.roster(workspace_id), "me": me}
+        {
+            "channel": "presence",
+            "type": "roster",
+            "members": await manager.roster(workspace_id),
+            "me": me,
+        }
     )
     await manager.broadcast(
         workspace_id, {"channel": "presence", "type": "join", "member": me}, exclude=ws

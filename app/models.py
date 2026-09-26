@@ -5,10 +5,20 @@ because implicit lazy loading does not play well with async sessions.
 """
 from __future__ import annotations
 
+import secrets
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from sqlalchemy import JSON, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -16,6 +26,11 @@ from app.database import Base
 
 def _uuid() -> str:
     return uuid4().hex
+
+
+def _invite_code() -> str:
+    # ~16 chars of URL-safe entropy; unguessable but short enough to share.
+    return secrets.token_urlsafe(12)
 
 
 def _now() -> datetime:
@@ -49,6 +64,25 @@ class Membership(Base):
     workspace_id: Mapped[str] = mapped_column(ForeignKey("workspaces.id"), index=True)
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
     role: Mapped[str] = mapped_column(String(20), default="member")  # owner | member
+    created_at: Mapped[datetime] = mapped_column(default=_now)
+
+
+class Invite(Base):
+    """A shareable join code for a workspace, with an expiry and revoke flag.
+
+    ``expires_at`` is stored as a Unix epoch (Float) rather than a datetime so
+    the "is it still valid?" check is trivial and identical on SQLite and
+    Postgres, sidestepping naive/aware datetime pitfalls across the two.
+    """
+
+    __tablename__ = "invites"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    workspace_id: Mapped[str] = mapped_column(ForeignKey("workspaces.id"), index=True)
+    code: Mapped[str] = mapped_column(String(32), unique=True, index=True, default=_invite_code)
+    created_by: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    expires_at: Mapped[float] = mapped_column(Float)  # Unix epoch seconds
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(default=_now)
 
 

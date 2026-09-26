@@ -18,7 +18,15 @@ from app.models import (
     Whiteboard,
     Workspace,
 )
-from app.services import log_activity, members_of, require_workspace
+from app.services import (
+    active_invite,
+    create_invite,
+    log_activity,
+    members_of,
+    require_workspace,
+    resolve_invite,
+    rotate_invite,
+)
 from app.web import templates
 
 router = APIRouter()
@@ -74,6 +82,7 @@ async def create_workspace(
         )
     )
     db.add(Whiteboard(workspace_id=workspace.id, title="Ideas", position=1000.0))
+    await create_invite(db, workspace.id, user.id)
     await log_activity(db, workspace.id, user.id, f"created the workspace “{name}”")
     await db.commit()
     return RedirectResponse(f"/workspaces/{workspace.id}", status_code=303)
@@ -85,20 +94,33 @@ async def join_workspace(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    code = code.strip()
-    workspace = await db.get(Workspace, code)
-    if workspace is None:
+    invite = await resolve_invite(db, code.strip())
+    if invite is None:
         return RedirectResponse("/dashboard?error=notfound", status_code=303)
+    workspace_id = invite.workspace_id
     existing = await db.scalar(
         select(Membership).where(
-            Membership.workspace_id == workspace.id, Membership.user_id == user.id
+            Membership.workspace_id == workspace_id, Membership.user_id == user.id
         )
     )
     if existing is None:
-        db.add(Membership(workspace_id=workspace.id, user_id=user.id, role="member"))
-        await log_activity(db, workspace.id, user.id, "joined the workspace")
+        db.add(Membership(workspace_id=workspace_id, user_id=user.id, role="member"))
+        await log_activity(db, workspace_id, user.id, "joined the workspace")
         await db.commit()
-    return RedirectResponse(f"/workspaces/{workspace.id}", status_code=303)
+    return RedirectResponse(f"/workspaces/{workspace_id}", status_code=303)
+
+
+@router.post("/workspaces/{workspace_id}/invites")
+async def rotate_workspace_invite(
+    workspace_id: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Revoke the current invite code and mint a fresh one (any member may rotate)."""
+    await require_workspace(db, workspace_id, user)
+    await rotate_invite(db, workspace_id, user.id)
+    await db.commit()
+    return RedirectResponse(f"/workspaces/{workspace_id}", status_code=303)
 
 
 @router.post("/workspaces/{workspace_id}/surfaces")
@@ -162,6 +184,7 @@ async def open_workspace(
         )
     )
     members = await members_of(db, workspace_id)
+    invite = await active_invite(db, workspace_id)
 
     return templates.TemplateResponse(
         request,
@@ -169,6 +192,7 @@ async def open_workspace(
         {
             "user": user,
             "workspace": workspace,
+            "invite": invite,
             "boards": boards,
             "docs": docs,
             "whiteboards": whiteboards,

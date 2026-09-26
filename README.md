@@ -32,7 +32,7 @@ keys) and scales to Postgres via Docker Compose for a production-shaped setup.
 | Layer | Choice |
 | --- | --- |
 | Web framework | FastAPI (async) + Uvicorn |
-| Realtime | Native WebSockets, one connection per user per workspace |
+| Realtime | Native WebSockets, one connection per user per workspace (optional Redis pub/sub fan-out) |
 | Persistence | SQLAlchemy 2.0 async ORM — SQLite (default) / Postgres (asyncpg) |
 | Templating | Jinja2 server-rendered partials |
 | Frontend | Tailwind (CDN) + vanilla JS + SortableJS; no build step |
@@ -49,10 +49,12 @@ envelope:
 ```
 
 A thin transport loop (`app/realtime/socket.py`) authenticates the cookie,
-confirms workspace membership, registers the socket with an in-memory
-`ConnectionManager`, and forwards each frame to a per-channel handler
-(`app/realtime/handlers.py`). Handlers persist the change and broadcast the
-result to the room.
+confirms workspace membership, registers the socket with a `ConnectionManager`,
+and forwards each frame to a per-channel handler (`app/realtime/handlers.py`).
+Handlers persist the change and broadcast the result to the room. The manager is
+in-memory and single-process by default; set `REDIS_URL` and it fans broadcasts
+and presence out over Redis pub/sub so several app processes can serve one
+workspace — with no change to the rest of the app.
 
 **Reads over HTTP, writes over WebSocket.** Opening a surface fetches a rendered
 HTML partial over HTTP (`/workspaces/{id}/board/{board_id}`, etc.). From then on
@@ -102,6 +104,8 @@ have sensible defaults so it runs out of the box.
 | --- | --- | --- |
 | `SECRET_KEY` | dev placeholder | signs JWT session cookies — **set a real one in production** |
 | `DATABASE_URL` | `sqlite+aiosqlite:///./collabspace.db` | SQLAlchemy async URL; Compose overrides with asyncpg/Postgres |
+| `COOKIE_SECURE` | `false` | send the session cookie only over HTTPS — **set `true` behind TLS in production** |
+| `REDIS_URL` | _(unset)_ | optional Redis for multi-process WebSocket fan-out + presence; unset ⇒ in-memory, single-process |
 | `WS_HEARTBEAT_SECONDS` | `25` | idle interval before the server pings a socket |
 
 ## Tests
@@ -121,13 +125,14 @@ the realtime layer end-to-end (presence roster, chat echo, and live board / doc
   **httpOnly**, `SameSite=Lax` cookie. Every HTTP surface route and the
   WebSocket verify **workspace membership** before returning or mutating data,
   and unknown/forbidden resources return `404` so existence isn't leaked.
-- **Cookie over HTTP in dev**: the session cookie is sent with `secure=False`
-  so it works over plain `http://localhost`. **Set `secure=True` behind HTTPS in
-  production** (see `_set_session_cookie` in `app/routers/auth.py`).
-- **Invite code == workspace id**: joining a workspace uses its raw id as the
-  invite code. It's an unguessable 128-bit value, but anyone with the id can
-  join — treat it like a shared secret. Add per-invite tokens/expiry for a
-  stricter model.
+- **Cookie over HTTP in dev**: the session cookie defaults to `secure=False`
+  (controlled by `COOKIE_SECURE`) so it works over plain `http://localhost`.
+  **Set `COOKIE_SECURE=true` behind HTTPS in production** — see
+  `_set_session_cookie` in `app/routers/auth.py`.
+- **Per-invite join codes**: each workspace has a rotatable invite code
+  (unguessable, from `secrets.token_urlsafe`) that **expires after 7 days**. Any
+  member can regenerate it, which immediately revokes the previous code — so a
+  leaked code can be cut off. The workspace id itself is never the join secret.
 - **Untrusted input**: doc Markdown is escaped before the client introduces its
   own tags (no raw HTML injection), and whiteboard element data is whitelisted
   and coerced server-side (`_clean_element_data`) with length caps.
