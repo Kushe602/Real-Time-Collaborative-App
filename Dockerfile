@@ -21,4 +21,7 @@ USER appuser
 EXPOSE 8000
 
 # Structural reads + the multiplexed workspace WebSocket are both served here.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Bind $PORT when the platform provides one (Render/Railway/Fly/Heroku set it);
+# fall back to 8000 for local `docker run` / compose. `exec` hands signals
+# straight to uvicorn for clean shutdowns.
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

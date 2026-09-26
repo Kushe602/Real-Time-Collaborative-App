@@ -1,0 +1,26 @@
+# Render Blueprint — one-click deploy of CollabSpace.
+# In the Render dashboard: New + → Blueprint, connect this repo, and Render
+# reads this file, builds the Dockerfile, and provisions the service below.
+services:
+  - type: web
+    name: collabspace
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeploy: true          # redeploy on every push to the default branch
+    envVars:
+      # Signs JWT session cookies — Render generates a strong random value once.
+      - key: SECRET_KEY
+        generateValue: true
+      # Served over Render's HTTPS, so scope the session cookie to HTTPS.
+      - key: COOKIE_SECURE
+        value: "true"
+      # Idle interval before the server pings a socket (presence keep-alive).
+      - key: WS_HEARTBEAT_SECONDS
+        value: "25"
+      # No DATABASE_URL → default SQLite (ephemeral on the free plan: data resets
+      #   when the instance sleeps/redeploys — fine for a demo). Add a Render
+      #   Postgres and set DATABASE_URL to persist.
+      # No REDIS_URL → in-memory single-process fan-out (correct for one free
+      #   instance). Set REDIS_URL only when scaling to multiple instances.

@@ -33,6 +33,13 @@ app.include_router(surfaces.router)
 app.include_router(socket.router)
 
 
+@app.get("/healthz", include_in_schema=False)
+async def healthz() -> dict[str, str]:
+    """Liveness probe for platform health checks — no auth, no DB touch."""
+    return {"status": "ok"}
+
+
+
 @app.exception_handler(NotAuthenticated)
 async def _redirect_to_login(request: Request, exc: NotAuthenticated) -> Response:
     """Anonymous users hitting a protected route are sent to the login page."""

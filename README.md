@@ -95,6 +95,17 @@ docker compose up --build
 
 This starts Postgres and the app wired to it; open http://localhost:8000.
 
+### Deploy to Render (free)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Kushe602/Real-Time-Collaborative-App)
+
+CollabSpace ships a [`render.yaml`](render.yaml) blueprint. Click the button
+(or in the Render dashboard use **New + → Blueprint** and pick this repo) and
+Render builds the Dockerfile, generates a `SECRET_KEY`, sets `COOKIE_SECURE=true`,
+and serves the app — WebSockets included — over HTTPS. The free plan sleeps when
+idle (~50s cold start) and uses ephemeral SQLite (data resets on restart); add a
+Render Postgres and set `DATABASE_URL` to persist.
+
 ## Configuration
 
 Settings load from the environment or a `.env` file (see `.env.example`). All
