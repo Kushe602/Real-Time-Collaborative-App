@@ -10,7 +10,7 @@ from app.database import init_db
 from app.dependencies import NotAuthenticated
 from app.realtime import socket
 from app.realtime.manager import manager
-from app.routers import auth, surfaces, workspaces
+from app.routers import auth, notifications, surfaces, workspaces
 from app.web import static_files
 
 
@@ -30,6 +30,7 @@ app.mount("/static", static_files, name="static")
 app.include_router(auth.router)
 app.include_router(workspaces.router)
 app.include_router(surfaces.router)
+app.include_router(notifications.router)
 app.include_router(socket.router)
 
 

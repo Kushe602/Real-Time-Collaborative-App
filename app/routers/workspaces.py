@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -14,6 +14,7 @@ from app.models import (
     BoardList,
     Doc,
     Membership,
+    Notification,
     User,
     Whiteboard,
     Workspace,
@@ -186,6 +187,27 @@ async def open_workspace(
     members = await members_of(db, workspace_id)
     invite = await active_invite(db, workspace_id)
 
+    notifications = list(
+        await db.scalars(
+            select(Notification)
+            .where(
+                Notification.workspace_id == workspace_id,
+                Notification.user_id == user.id,
+            )
+            .order_by(Notification.created_at.desc())
+            .limit(30)
+        )
+    )
+    unread_count = await db.scalar(
+        select(func.count())
+        .select_from(Notification)
+        .where(
+            Notification.workspace_id == workspace_id,
+            Notification.user_id == user.id,
+            Notification.read.is_(False),
+        )
+    )
+
     return templates.TemplateResponse(
         request,
         "workspace.html",
@@ -199,6 +221,9 @@ async def open_workspace(
             "activities": activities,
             "members": members,
             "member_names": {m.id: m.display_name for m in members},
+            "notifications": notifications,
+            "notif_actors": {m.id: m for m in members},
+            "unread_count": unread_count or 0,
         },
     )
 

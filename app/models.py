@@ -42,6 +42,7 @@ class User(Base):
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    username: Mapped[str] = mapped_column(String(40), unique=True, index=True, default=_uuid)
     display_name: Mapped[str] = mapped_column(String(80))
     hashed_password: Mapped[str] = mapped_column(String(255))
     color: Mapped[str] = mapped_column(String(7), default="#6366f1")
@@ -115,7 +116,23 @@ class Card(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     position: Mapped[float] = mapped_column(Float, default=1000.0)
     assignee_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    # Stored as an ISO "YYYY-MM-DD" string (or None) so the check is trivial and
+    # timezone-free — mirrors the deliberate simplicity of the rest of the model.
+    due_date: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    labels: Mapped[list] = mapped_column(JSON, default=list)  # [{"text", "color"}]
+    checklist: Mapped[list] = mapped_column(JSON, default=list)  # [{"id", "text", "done"}]
     created_at: Mapped[datetime] = mapped_column(default=_now)
+
+
+class CardComment(Base):
+    __tablename__ = "card_comments"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    card_id: Mapped[str] = mapped_column(ForeignKey("cards.id"), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(default=_now, index=True)
+
 
 class Doc(Base):
     __tablename__ = "docs"
@@ -128,6 +145,23 @@ class Doc(Base):
     position: Mapped[float] = mapped_column(Float, default=1000.0)
     created_at: Mapped[datetime] = mapped_column(default=_now)
     updated_at: Mapped[datetime] = mapped_column(default=_now)
+
+
+class DocVersion(Base):
+    """An append-only snapshot of a doc's body, one row per saved version.
+
+    A restore doesn't rewrite history — it writes the old content forward as a
+    fresh version, so the timeline only ever grows and every state is reachable.
+    """
+
+    __tablename__ = "doc_versions"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    doc_id: Mapped[str] = mapped_column(ForeignKey("docs.id"), index=True)
+    version: Mapped[int] = mapped_column(Integer)
+    content: Mapped[str] = mapped_column(Text, default="")
+    author_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(default=_now, index=True)
 
 
 class Whiteboard(Base):
@@ -167,5 +201,26 @@ class Activity(Base):
     workspace_id: Mapped[str] = mapped_column(ForeignKey("workspaces.id"), index=True)
     user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     summary: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(default=_now, index=True)
+
+
+class Notification(Base):
+    """A per-user in-app notification (an @mention or a card assignment).
+
+    Delivered live over the ``notifications`` channel when the recipient is
+    connected, and always persisted so the badge/feed survives a reload.
+    """
+
+    __tablename__ = "notifications"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    workspace_id: Mapped[str] = mapped_column(ForeignKey("workspaces.id"), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)  # recipient
+    actor_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    kind: Mapped[str] = mapped_column(String(20))  # mention | assign
+    body: Mapped[str] = mapped_column(Text)
+    board_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    card_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    read: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     created_at: Mapped[datetime] = mapped_column(default=_now, index=True)
 

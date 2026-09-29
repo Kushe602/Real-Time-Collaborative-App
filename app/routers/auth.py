@@ -18,6 +18,7 @@ from app.security import (
     hash_password,
     verify_password,
 )
+from app.services import unique_username
 from app.web import templates
 
 router = APIRouter()
@@ -76,6 +77,7 @@ async def register(
 
     user = User(
         email=email,
+        username=await unique_username(db, email),
         display_name=display_name,
         hashed_password=hash_password(password),
         color=secrets.choice(PALETTE),

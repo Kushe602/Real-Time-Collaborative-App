@@ -1,0 +1,27 @@
+<div class="cs-versions" data-doc-versions="{{ doc.id }}">
+  <div class="mb-2 flex items-center justify-between">
+    <span class="text-sm font-semibold text-slate-200">Version history</span>
+    <button type="button" data-versions-close
+            class="text-xs text-slate-500 hover:text-slate-300">Close ✕</button>
+  </div>
+  {% if not versions %}
+    <p class="text-xs text-slate-500">No saved versions yet — edits create versions automatically.</p>
+  {% else %}
+    <ul class="space-y-1.5">
+      {% for v in versions %}
+        {% set author = authors.get(v.author_id) if v.author_id else None %}
+        <li class="rounded-lg border border-slate-800 bg-slate-950 p-2" data-version="{{ v.version }}">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-medium text-slate-300">v{{ v.version }}
+              <span class="font-normal text-slate-500">· {{ author.display_name if author else "Someone" }}
+                · {{ v.created_at.strftime("%b %d, %H:%M") if v.created_at else "" }}</span>
+            </span>
+            <button type="button" data-version-restore="{{ v.version }}"
+                    class="rounded border border-slate-700 px-2 py-0.5 text-[11px] text-slate-300 hover:border-indigo-500">Restore</button>
+          </div>
+          <div class="mt-1 max-h-10 overflow-hidden text-[11px] text-slate-500">{{ (v.content or "")[:160] }}</div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>

@@ -1,8 +1,16 @@
 <div data-whiteboard="{{ wb.id }}" class="flex h-full flex-col">
-  <div class="mb-3 flex flex-none items-center gap-2">
+  <div class="mb-3 flex flex-none flex-wrap items-center gap-2">
     <span class="text-lg">🎨</span>
     <span class="font-semibold text-slate-200">{{ wb.title }}</span>
     <div class="ml-3 flex items-center gap-1">
+      <button type="button" data-wb-tool="select"
+              class="cs-tool cs-tool-active rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-slate-500">▷ Select</button>
+      <button type="button" data-wb-tool="pen"
+              class="cs-tool rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-slate-500">✎ Pen</button>
+      <button type="button" data-wb-tool="text"
+              class="cs-tool rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-slate-500">T Text</button>
+    </div>
+    <div class="flex items-center gap-1">
       <button type="button" data-wb-add="note"
               class="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-slate-500">+ Note</button>
       <button type="button" data-wb-add="rect"
@@ -10,7 +18,14 @@
       <button type="button" data-wb-add="ellipse"
               class="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-slate-500">◯ Ellipse</button>
     </div>
-    <span class="ml-auto text-xs text-slate-500">Drag to move · double-click a note to edit</span>
+    <div data-wb-palette class="flex items-center gap-1">
+      {% for c in ["#e2e8f0", "#f59e0b", "#ef4444", "#10b981", "#3b82f6", "#a855f7", "#ec4899"] %}
+        <button type="button" data-wb-color="{{ c }}"
+                class="cs-swatch {% if loop.first %}cs-swatch-active{% endif %}" style="background: {{ c }}"
+                title="{{ c }}"></button>
+      {% endfor %}
+    </div>
+    <span class="ml-auto text-xs text-slate-500">Pen &amp; Text use the selected colour · double-click a note/text to edit · ✕ to delete</span>
   </div>
   <div data-wb-canvas class="cs-wb-canvas cs-scroll relative min-h-0 flex-1 overflow-auto rounded-xl border border-slate-800 bg-slate-950">
     <div data-wb-surface class="relative" style="width: 2400px; height: 1600px;"></div>

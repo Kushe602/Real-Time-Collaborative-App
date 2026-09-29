@@ -5,7 +5,10 @@
     <span data-count class="rounded bg-slate-800 px-1.5 text-xs text-slate-400">{{ cards | length }}</span>
   </div>
   <div data-cards class="cs-scroll flex min-h-[3rem] flex-1 flex-col gap-2 overflow-y-auto px-2 pb-2">
-    {% for card in cards %}{% include "partials/card.html" %}{% endfor %}
+    {% for card in cards %}
+      {% set comment_count = comment_counts.get(card.id, 0) if comment_counts else 0 %}
+      {% include "partials/card.html" %}
+    {% endfor %}
   </div>
   <form data-add-card class="border-t border-slate-800 p-2">
     <input name="title" autocomplete="off" placeholder="+ Add a card"

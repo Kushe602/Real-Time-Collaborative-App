@@ -1,0 +1,14 @@
+<li class="cs-note {% if not n.read %}cs-note-unread{% endif %} flex cursor-pointer items-start gap-2 px-3 py-2 text-sm hover:bg-slate-800/60"
+    data-note="{{ n.id }}" data-kind="{{ n.kind }}"
+    data-board="{{ n.board_id or '' }}" data-card="{{ n.card_id or '' }}">
+  <span class="grid h-7 w-7 flex-none place-items-center rounded-full text-[10px] font-semibold text-white"
+        style="background: {{ actor.color if actor else '#64748b' }}">{{ (actor.display_name if actor else "?") | initials }}</span>
+  <div class="min-w-0 flex-1">
+    <div class="break-words text-slate-200">
+      <span class="font-medium">{{ actor.display_name if actor else "Someone" }}</span> {{ n.body }}
+    </div>
+    <div class="mt-0.5 text-[10px] text-slate-500">{{ n.created_at.strftime("%b %d, %H:%M") if n.created_at else "" }}</div>
+  </div>
+  <button type="button" data-note-read title="Mark as read"
+          class="cs-note-dot mt-1 flex-none" aria-label="Mark as read"></button>
+</li>

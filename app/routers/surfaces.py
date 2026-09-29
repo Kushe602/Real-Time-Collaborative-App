@@ -7,13 +7,23 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.dependencies import get_current_user
-from app.models import Board, BoardList, Card, Doc, User, Whiteboard, WhiteboardElement
-from app.services import require_workspace
+from app.models import (
+    Board,
+    BoardList,
+    Card,
+    CardComment,
+    Doc,
+    DocVersion,
+    User,
+    Whiteboard,
+    WhiteboardElement,
+)
+from app.services import member_map, members_of, require_workspace
 from app.web import templates
 
 router = APIRouter()
@@ -46,10 +56,59 @@ async def board_partial(
     cards_by_list: dict[str, list[Card]] = {lst.id: [] for lst in lists}
     for card in cards:
         cards_by_list.setdefault(card.list_id, []).append(card)
+    counts = await db.execute(
+        select(CardComment.card_id, func.count())
+        .where(CardComment.card_id.in_([c.id for c in cards] or [""]))
+        .group_by(CardComment.card_id)
+    )
+    comment_counts = {card_id: n for card_id, n in counts.all()}
+    members = await member_map(db, workspace_id)
     return templates.TemplateResponse(
         request,
         "partials/board.html",
-        {"board": board, "lists": lists, "cards_by_list": cards_by_list},
+        {
+            "board": board,
+            "lists": lists,
+            "cards_by_list": cards_by_list,
+            "members": members,
+            "comment_counts": comment_counts,
+        },
+    )
+
+
+@router.get("/workspaces/{workspace_id}/card/{card_id}", response_class=HTMLResponse)
+async def card_partial(
+    workspace_id: str,
+    card_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """The rich card-detail panel: fields, checklist, and the comment thread."""
+    await require_workspace(db, workspace_id, user)
+    card = await db.get(Card, card_id)
+    lst = await db.get(BoardList, card.list_id) if card else None
+    board = await db.get(Board, lst.board_id) if lst else None
+    if board is None or board.workspace_id != workspace_id:
+        return HTMLResponse("Card not found", status_code=404)
+    members = await members_of(db, workspace_id)
+    comments = list(
+        await db.scalars(
+            select(CardComment)
+            .where(CardComment.card_id == card_id)
+            .order_by(CardComment.created_at)
+        )
+    )
+    return templates.TemplateResponse(
+        request,
+        "partials/card_detail.html",
+        {
+            "card": card,
+            "members": members,
+            "comments": comments,
+            "authors": {m.id: m for m in members},
+            "board_id": board.id,
+        },
     )
 
 
@@ -66,6 +125,38 @@ async def doc_partial(
     if doc is None or doc.workspace_id != workspace_id:
         return HTMLResponse("Doc not found", status_code=404)
     return templates.TemplateResponse(request, "partials/doc.html", {"doc": doc})
+
+
+@router.get("/workspaces/{workspace_id}/doc/{doc_id}/versions", response_class=HTMLResponse)
+async def doc_versions_partial(
+    workspace_id: str,
+    doc_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """The saved-version timeline for a doc, newest first, with restore controls."""
+    await require_workspace(db, workspace_id, user)
+    doc = await db.get(Doc, doc_id)
+    if doc is None or doc.workspace_id != workspace_id:
+        return HTMLResponse("Doc not found", status_code=404)
+    versions = list(
+        await db.scalars(
+            select(DocVersion)
+            .where(DocVersion.doc_id == doc_id)
+            .order_by(DocVersion.version.desc())
+        )
+    )
+    author_ids = {v.author_id for v in versions if v.author_id}
+    authors: dict[str, User] = {}
+    if author_ids:
+        rows = await db.scalars(select(User).where(User.id.in_(author_ids)))
+        authors = {u.id: u for u in rows}
+    return templates.TemplateResponse(
+        request,
+        "partials/doc_versions.html",
+        {"doc": doc, "versions": versions, "authors": authors},
+    )
 
 
 @router.get("/workspaces/{workspace_id}/whiteboard/{whiteboard_id}", response_class=HTMLResponse)

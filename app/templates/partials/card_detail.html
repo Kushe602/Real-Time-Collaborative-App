@@ -1,0 +1,81 @@
+<div data-card-detail="{{ card.id }}" data-board="{{ board_id }}"
+     class="cs-card-detail flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
+  <script type="application/json" data-card-state>{{
+    {"id": card.id, "assignee_id": card.assignee_id, "due_date": card.due_date,
+     "labels": card.labels or [], "checklist": card.checklist or []} | tojson
+  }}</script>
+
+  <div class="flex items-start gap-3 border-b border-slate-800 px-5 py-3">
+    <textarea data-cd-title rows="1"
+              class="min-w-0 flex-1 resize-none rounded-lg border border-transparent bg-transparent px-2 py-1 text-lg font-semibold text-slate-100 outline-none hover:border-slate-700 focus:border-indigo-500">{{ card.title }}</textarea>
+    <button type="button" data-cd-close
+            class="flex-none rounded-lg px-2 py-1 text-slate-400 hover:bg-slate-800 hover:text-slate-200">✕</button>
+  </div>
+
+  <div class="cs-scroll min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
+    <div class="flex flex-wrap gap-4">
+      <label class="flex flex-col gap-1 text-xs text-slate-400">
+        Assignee
+        <select data-cd-assignee
+                class="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-200 outline-none focus:border-indigo-500">
+          <option value="">Unassigned</option>
+          {% for m in members %}
+            <option value="{{ m.id }}" {% if m.id == card.assignee_id %}selected{% endif %}>{{ m.display_name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="flex flex-col gap-1 text-xs text-slate-400">
+        Due date
+        <input type="date" data-cd-due value="{{ card.due_date or '' }}"
+               class="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-200 outline-none focus:border-indigo-500" />
+      </label>
+    </div>
+    <div>
+      <div class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Labels</div>
+      <div data-cd-labels class="mb-2 flex flex-wrap gap-1"></div>
+      <form data-cd-label-form class="flex items-center gap-2">
+        <input data-cd-label-text maxlength="40" placeholder="Add a label…"
+               class="w-40 rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs outline-none focus:border-indigo-500" />
+        <input type="color" data-cd-label-color value="#6366f1"
+               class="h-7 w-8 cursor-pointer rounded border border-slate-700 bg-slate-950" />
+        <button class="rounded border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-indigo-500">Add</button>
+      </form>
+    </div>
+
+    <div>
+      <div class="mb-1 flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Checklist</span>
+        <span data-cd-progress class="text-[11px] text-slate-500"></span>
+      </div>
+      <div data-cd-checklist class="mb-2 space-y-1"></div>
+      <form data-cd-check-form class="flex items-center gap-2">
+        <input data-cd-check-text maxlength="200" placeholder="Add an item…"
+               class="flex-1 rounded border border-slate-700 bg-slate-950 px-2 py-1 text-sm outline-none focus:border-indigo-500" />
+        <button class="rounded border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-indigo-500">Add</button>
+      </form>
+    </div>
+
+    <div>
+      <div class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Description</div>
+      <textarea data-cd-desc rows="3" placeholder="Add a description…"
+                class="w-full resize-y rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none focus:border-indigo-500">{{ card.description or "" }}</textarea>
+    </div>
+    <div>
+      <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Comments</div>
+      <div data-cd-comments class="space-y-3">
+        {% for c in comments %}
+          {% set author = authors.get(c.user_id) %}
+          {% include "partials/comment.html" %}
+        {% endfor %}
+      </div>
+      <form data-cd-comment-form class="relative mt-3">
+        <textarea data-cd-comment-input rows="2" placeholder="Write a comment… use @name to mention"
+                  class="w-full resize-none rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 outline-none focus:border-indigo-500"></textarea>
+        <div data-cd-mention-box class="cs-mention-box hidden"></div>
+        <div class="mt-1 flex justify-end">
+          <button class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500">Comment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,32 @@
+{% set assignee = members.get(card.assignee_id) if (card.assignee_id and members) else None %}
+{% set _done = (card.checklist or []) | selectattr("done") | list | length %}
+{% set _total = (card.checklist or []) | length %}
 <div data-card="{{ card.id }}" data-position="{{ card.position }}"
      class="cs-card group cursor-grab rounded-lg border border-slate-800 bg-slate-950 p-2.5 text-sm shadow-sm hover:border-slate-600 active:cursor-grabbing">
+  {% if card.labels %}
+    <div class="mb-1.5 flex flex-wrap gap-1">
+      {% for label in card.labels %}
+        <span class="rounded px-1.5 py-0.5 text-[10px] font-medium text-white"
+              style="background: {{ label.color }}">{{ label.text }}</span>
+      {% endfor %}
+    </div>
+  {% endif %}
   <div class="whitespace-pre-wrap break-words">{{ card.title }}</div>
+  {% if card.due_date or _total or assignee or comment_count %}
+    <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+      {% if card.due_date %}
+        <span class="inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5">🗓️ {{ card.due_date }}</span>
+      {% endif %}
+      {% if _total %}
+        <span class="inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5">✓ {{ _done }}/{{ _total }}</span>
+      {% endif %}
+      {% if comment_count %}
+        <span class="inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5">💬 {{ comment_count }}</span>
+      {% endif %}
+      {% if assignee %}
+        <span class="ml-auto grid h-6 w-6 place-items-center rounded-full text-[10px] font-semibold text-white"
+              style="background: {{ assignee.color }}" title="{{ assignee.display_name }}">{{ assignee.display_name | initials }}</span>
+      {% endif %}
+    </div>
+  {% endif %}
 </div>

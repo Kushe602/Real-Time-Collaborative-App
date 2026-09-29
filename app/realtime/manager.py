@@ -207,15 +207,45 @@ class ConnectionManager:
             with contextlib.suppress(Exception):
                 await self._redis.publish(_CHANNEL, payload)
 
+    async def send_to_user(self, workspace_id: str, user_id: str, message: dict) -> None:
+        """Deliver ``message`` only to ``user_id``'s sockets in the room.
+
+        Used for private pushes (notifications) rather than room-wide fan-out.
+        Rides the same Redis channel so a recipient connected to another process
+        still receives it, tagged with ``target_user`` so only their sockets get it.
+        """
+        await self._deliver_local(workspace_id, message, target_user=user_id)
+        if self._redis is not None:
+            payload = json.dumps(
+                {
+                    "origin": self._id,
+                    "workspace_id": workspace_id,
+                    "message": message,
+                    "target_user": user_id,
+                }
+            )
+            with contextlib.suppress(Exception):
+                await self._redis.publish(_CHANNEL, payload)
+
     async def _deliver_local(
-        self, workspace_id: str, message: dict, *, exclude: WebSocket | None = None
+        self,
+        workspace_id: str,
+        message: dict,
+        *,
+        exclude: WebSocket | None = None,
+        target_user: str | None = None,
     ) -> None:
         room = self._rooms.get(workspace_id)
         if not room:
             return
+        if target_user is not None:
+            member = room.get(target_user)
+            members = [member] if member is not None else []
+        else:
+            members = list(room.values())
         targets = [
             conn
-            for member in list(room.values())
+            for member in members
             for socket, conn in list(member.connections.items())
             if socket is not exclude
         ]
@@ -238,7 +268,9 @@ class ConnectionManager:
                     continue
                 if data.get("origin") == self._id:
                     continue  # our own broadcast, already delivered locally
-                await self._deliver_local(data["workspace_id"], data["message"])
+                await self._deliver_local(
+                    data["workspace_id"], data["message"], target_user=data.get("target_user")
+                )
         except asyncio.CancelledError:
             raise
         except Exception:  # noqa: BLE001 - a reader crash must not take down the app

@@ -24,10 +24,21 @@ keys) and scales to Postgres via Docker Compose for a production-shaped setup.
 - **Kanban boards** — lists and cards with live drag-and-drop reordering across
   columns (fractional positioning, so two people reordering never clobber each
   other's indices).
+- **Rich cards** — open any card for a detail panel with assignee, due date,
+  colour labels, and a checklist with progress; every field edit broadcasts live.
+- **Card comments + @mentions** — a threaded comment box with `@username`
+  autocomplete over the workspace roster; comments stream to everyone in real time.
+- **In-app notifications** — a live bell with an unread badge and dropdown feed;
+  you're notified the moment someone @mentions you or assigns you a card, and
+  read state persists over a dedicated `notifications` channel.
 - **Collaborative docs** — a Markdown editor with a live-rendered preview;
   edits stream to everyone with a server-owned version counter (last-write-wins).
+- **Document version history** — every save snapshots the doc; open the timeline
+  to preview past versions and restore one, with the restore broadcast live to
+  everyone (history only grows — a restore is written forward as a new version).
 - **Shared whiteboard** — sticky notes and shapes you drag around an infinite
-  canvas, with editable note text and live remote cursors.
+  canvas, plus a freehand **pen**, **text** elements, a **colour palette**, and
+  per-element **delete** — all with editable text and live remote cursors.
 - **Team chat** — per-workspace chat delivered instantly over the same socket.
 - **Presence** — a live roster, join/leave events, per-surface cursors, and an
   "editing" pulse on a teammate's avatar.
@@ -51,7 +62,7 @@ keys) and scales to Postgres via Docker Compose for a production-shaped setup.
 envelope:
 
 ```json
-{ "channel": "presence|chat|board|doc|whiteboard|system", "type": "...", "...": "payload" }
+{ "channel": "presence|chat|board|doc|whiteboard|notifications|system", "type": "...", "...": "payload" }
 ```
 
 A thin transport loop (`app/realtime/socket.py`) authenticates the cookie,
@@ -71,8 +82,10 @@ cacheable while making collaboration live.
 
 | Message | Broadcast to | Why |
 | --- | --- | --- |
-| `card.create`, `list.create`, `element.create`, chat | **everyone incl. sender** | sender renders on echo, so all clients converge on server-assigned ids |
+| `card.create`, `list.create`, `element.create`, `element.delete`, chat | **everyone incl. sender** | sender renders on echo, so all clients converge on server-assigned ids |
+| `card.update`/`card.updated`, `comment.add`/`comment.added`, `doc.restore` | **everyone incl. sender** | the server owns the merged result (rendered card, comment, restored body) that all clients adopt |
 | `card.move`, `doc.update`, `element.move`, `element.update`, cursors | **everyone except sender** | the sender already applied it optimistically |
+| `notification.new` (@mention, assignment) | **one recipient** | a private push via `send_to_user`, not a room-wide broadcast |
 
 **Data model** (`app/models.py`) is intentionally free of ORM `relationship()`
 lazy-loading — every association is an explicit query, which plays well with
@@ -133,8 +146,10 @@ ruff check .       # lint
 ```
 
 The suite covers auth, workspace membership gating, the surface partials, and
-the realtime layer end-to-end (presence roster, chat echo, and live board / doc
-/ whiteboard mutations verified through to server-side persistence).
+the realtime layer end-to-end — presence roster, chat echo, live board / doc /
+whiteboard mutations, rich-card edits, comment @mentions and the notifications
+they raise, and doc version snapshot/restore — all verified through to
+server-side persistence.
 
 ## Security notes
 
@@ -151,8 +166,11 @@ the realtime layer end-to-end (presence roster, chat echo, and live board / doc
   member can regenerate it, which immediately revokes the previous code — so a
   leaked code can be cut off. The workspace id itself is never the join secret.
 - **Untrusted input**: doc Markdown is escaped before the client introduces its
-  own tags (no raw HTML injection), and whiteboard element data is whitelisted
-  and coerced server-side (`_clean_element_data`) with length caps.
+  own tags (no raw HTML injection), whiteboard element data is whitelisted and
+  coerced server-side (`_clean_element_data`) with length caps, and card fields
+  (labels, checklist, due date) are likewise whitelisted (`_apply_card_patch`).
+  Comment bodies are HTML-escaped before `@mentions` are highlighted, so a
+  comment can't inject markup.
 
 ## Project layout
 
@@ -161,14 +179,14 @@ app/
   main.py            # app wiring: lifespan, routers, static, auth error handler
   config.py          # pydantic-settings
   database.py        # async engine + session + Base + init_db
-  models.py          # users, workspaces, boards, docs, whiteboards, chat, activity
+  models.py          # users, workspaces, boards/cards/comments, docs + versions, whiteboards, chat, activity, notifications
   security.py        # bcrypt + JWT + cookie name
-  services.py        # membership checks, activity log, member queries
+  services.py        # membership checks, activity log, member queries, mentions + notifications
   dependencies.py    # current-user resolution from the cookie
-  routers/           # auth, workspaces, surfaces (HTTP)
+  routers/           # auth, workspaces, surfaces, notifications (HTTP)
   realtime/          # socket (transport), handlers (channels), manager (presence)
   templates/         # Jinja2 shell + per-surface partials
-  static/            # app.css + collab/board/doc/whiteboard JS
+  static/            # app.css + collab/board/doc/whiteboard/notifications JS
 tests/               # pytest suite (HTTP + WebSocket)
 ```
 

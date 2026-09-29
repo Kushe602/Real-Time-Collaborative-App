@@ -14,9 +14,38 @@
     const input = root.querySelector("[data-doc-input]");
     renderPreview();
     input.addEventListener("input", onInput);
+    const histBtn = root.querySelector("[data-doc-history]");
+    if (histBtn) histBtn.addEventListener("click", toggleHistory);
     CS.onPresenceChange = refreshPresence;
     refreshPresence();
   };
+
+  async function toggleHistory() {
+    const panel = root && root.querySelector("[data-doc-versions-panel]");
+    if (!panel) return;
+    if (!panel.classList.contains("hidden")) { panel.classList.add("hidden"); return; }
+    try {
+      const res = await fetch(`/workspaces/${CS.workspaceId}/doc/${activeDocId}/versions`);
+      if (!res.ok) throw new Error(res.status);
+      panel.innerHTML = await res.text();
+    } catch (e) {
+      panel.innerHTML = '<div class="p-3 text-xs text-slate-500">Could not load history.</div>';
+    }
+    panel.classList.remove("hidden");
+    wireVersions(panel);
+  }
+
+  function wireVersions(panel) {
+    const close = panel.querySelector("[data-versions-close]");
+    if (close) close.addEventListener("click", () => panel.classList.add("hidden"));
+    panel.querySelectorAll("[data-version-restore]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        const version = parseInt(btn.dataset.versionRestore, 10);
+        if (Number.isNaN(version)) return;
+        CS.send({ channel: "doc", type: "doc.restore", doc_id: activeDocId, version });
+        panel.classList.add("hidden");
+      }));
+  }
 
   function onInput() {
     renderPreview();

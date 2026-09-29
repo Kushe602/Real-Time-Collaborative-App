@@ -70,6 +70,30 @@
     <div class="flex items-center justify-between border-b border-slate-800 px-5 py-3">
       <div id="surface-title" class="font-medium text-slate-300">Select a surface to start</div>
       <div class="flex items-center gap-3">
+        <div class="relative">
+          <button id="notif-bell" type="button" title="Notifications"
+                  class="relative rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200">
+            <span class="text-base leading-none">🔔</span>
+            <span id="notif-badge" class="cs-badge {% if not unread_count %}hidden{% endif %}">{{ unread_count }}</span>
+          </button>
+          <div id="notif-panel" class="cs-notif-panel hidden">
+            <div class="flex items-center justify-between border-b border-slate-800 px-3 py-2">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Notifications</span>
+              <button id="notif-readall" type="button"
+                      class="text-[11px] text-indigo-400 hover:text-indigo-300">Mark all read</button>
+            </div>
+            <ul id="notif-list" class="cs-scroll max-h-96 divide-y divide-slate-800/60 overflow-y-auto">
+              {% for n in notifications %}
+                {% set actor = notif_actors.get(n.actor_id) %}
+                {% include "partials/notification.html" %}
+              {% endfor %}
+            </ul>
+            <p id="notif-empty"
+               class="px-3 py-6 text-center text-xs text-slate-600 {% if notifications %}hidden{% endif %}">
+              You're all caught up.
+            </p>
+          </div>
+        </div>
         <div id="presence" class="flex -space-x-2"></div>
         <span class="flex items-center gap-1.5 text-xs text-slate-400">
           <span id="live-dot" class="cs-live-dot cs-offline"></span>
@@ -113,14 +137,27 @@
   </aside>
 </div>
 
+<div id="card-modal" class="cs-modal hidden">
+  <div class="cs-modal-backdrop" data-modal-close></div>
+  <div id="card-modal-body" class="cs-modal-body"></div>
+</div>
+
 <script>
   window.CS = {
     workspaceId: {{ workspace.id | tojson }},
     me: {
       user_id: {{ user.id | tojson }},
+      username: {{ user.username | tojson }},
       display_name: {{ user.display_name | tojson }},
       color: {{ user.color | tojson }}
-    }
+    },
+    members: [
+      {% for m in members %}
+      { user_id: {{ m.id | tojson }}, username: {{ m.username | tojson }},
+        display_name: {{ m.display_name | tojson }}, color: {{ m.color | tojson }} }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    unreadCount: {{ unread_count | tojson }}
   };
 </script>
 <script src="/static/js/collab.js"></script>
@@ -128,4 +165,5 @@
 <script src="/static/js/board.js"></script>
 <script src="/static/js/doc.js"></script>
 <script src="/static/js/whiteboard.js"></script>
+<script src="/static/js/notifications.js"></script>
 {% endblock %}

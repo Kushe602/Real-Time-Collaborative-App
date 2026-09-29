@@ -1,16 +1,20 @@
 """Shared data-access helpers used by both HTTP routers and the WebSocket layer."""
 from __future__ import annotations
 
+import re
 import time
 
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Activity, Invite, Membership, User, Workspace
+from app.models import Activity, DocVersion, Invite, Membership, Notification, User, Workspace
 
 # How long a freshly minted invite code stays valid.
 INVITE_TTL_SECONDS = 7 * 86400
+
+# An @mention token: "@" followed by a username-shaped run of characters.
+MENTION_RE = re.compile(r"@([a-z0-9_]{1,40})", re.IGNORECASE)
 
 
 async def member_or_none(
@@ -54,6 +58,66 @@ async def members_of(db: AsyncSession, workspace_id: str) -> list[User]:
         .order_by(User.display_name)
     )
     return list(rows.scalars())
+
+
+async def member_map(db: AsyncSession, workspace_id: str) -> dict[str, User]:
+    """``{user_id: User}`` for every member — handy for resolving assignees/authors."""
+    return {u.id: u for u in await members_of(db, workspace_id)}
+
+
+async def unique_username(db: AsyncSession, email: str) -> str:
+    """Derive a stable, unique @handle from an email's local part.
+
+    ``ada@example.com`` → ``ada``; collisions get a numeric suffix (``ada2`` …).
+    """
+    base = re.sub(r"[^a-z0-9_]", "", email.split("@", 1)[0].lower()) or "user"
+    candidate = base
+    n = 1
+    while await db.scalar(select(User).where(User.username == candidate)) is not None:
+        n += 1
+        candidate = f"{base}{n}"
+    return candidate
+
+
+def parse_mentions(body: str) -> set[str]:
+    """Return the lowercased set of usernames referenced as ``@name`` in ``body``."""
+    return {m.lower() for m in MENTION_RE.findall(body or "")}
+
+
+async def create_notification(
+    db: AsyncSession,
+    *,
+    workspace_id: str,
+    user_id: str,
+    actor_id: str | None,
+    kind: str,
+    body: str,
+    board_id: str | None = None,
+    card_id: str | None = None,
+) -> Notification:
+    """Persist a notification for ``user_id`` (flushed, not committed)."""
+    note = Notification(
+        workspace_id=workspace_id,
+        user_id=user_id,
+        actor_id=actor_id,
+        kind=kind,
+        body=body,
+        board_id=board_id,
+        card_id=card_id,
+    )
+    db.add(note)
+    await db.flush()
+    return note
+
+
+async def snapshot_doc_version(
+    db: AsyncSession, *, doc_id: str, version: int, content: str, author_id: str | None
+) -> DocVersion:
+    """Append a doc snapshot for the given version number (flushed, not committed)."""
+    snap = DocVersion(doc_id=doc_id, version=version, content=content, author_id=author_id)
+    db.add(snap)
+    await db.flush()
+    return snap
 
 
 async def create_invite(db: AsyncSession, workspace_id: str, user_id: str) -> Invite:

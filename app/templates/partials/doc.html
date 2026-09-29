@@ -1,4 +1,4 @@
-<div data-doc="{{ doc.id }}" data-version="{{ doc.version }}" class="flex h-full flex-col">
+<div data-doc="{{ doc.id }}" data-version="{{ doc.version }}" class="relative flex h-full flex-col">
   <div class="mb-3 flex flex-none items-center justify-between gap-3">
     <div class="flex items-center gap-2">
       <span class="text-lg">📝</span>
@@ -6,10 +6,13 @@
       <span data-doc-version class="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-400">v{{ doc.version }}</span>
     </div>
     <div class="flex items-center gap-2">
+      <button type="button" data-doc-history
+              class="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300 hover:border-slate-500">History</button>
       <span class="text-xs text-slate-500">Editing now</span>
       <div data-doc-presence class="flex -space-x-2"></div>
     </div>
   </div>
+  <div data-doc-versions-panel class="cs-versions-panel hidden"></div>
   <div class="grid min-h-0 flex-1 grid-cols-2 gap-4">
     <textarea data-doc-input spellcheck="false"
               placeholder="# Start writing…&#10;&#10;Markdown supported. Everyone in this workspace sees your edits live."
