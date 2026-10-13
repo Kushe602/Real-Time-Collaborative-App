@@ -55,6 +55,10 @@ keys) and scales to Postgres via Docker Compose for a production-shaped setup.
 | Frontend | Tailwind (CDN) + vanilla JS + SortableJS; no build step |
 | Auth | bcrypt password hashing + JWT (HS256) in an httpOnly cookie |
 
+## Interface guide
+
+The interface refresh is documented here: [UI guide](docs/UI_GUIDE.md) · [Live demo](https://collabspace-y3gw.onrender.com). The guide includes the screen overview and a local verification checklist.
+
 ## Architecture
 
 **One socket, many channels.** Each browser opens a single WebSocket to
