@@ -2,59 +2,86 @@
 {% block title %}{{ app_name }} — collaborate in real time{% endblock %}
 {% block body %}
 <div class="min-h-full">
-  <header class="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-    <div class="flex items-center gap-2 text-lg font-semibold">
-      <span class="grid h-8 w-8 place-items-center rounded-lg bg-indigo-500">◈</span>
+  <header class="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 sm:px-6">
+    <a href="/" class="flex items-center gap-3 text-lg font-semibold tracking-tight">
+      <span class="grid h-10 w-10 place-items-center rounded-xl bg-indigo-500 shadow-lg shadow-indigo-950/40">◈</span>
       {{ app_name }}
-    </div>
-    <nav class="flex items-center gap-3 text-sm">
+    </a>
+    <nav class="flex items-center gap-2 text-sm">
       {% if user %}
-        <a href="/dashboard" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium hover:bg-indigo-400">Open dashboard</a>
+        <a href="/dashboard" class="rounded-xl bg-indigo-500 px-4 py-2.5 font-semibold text-white hover:bg-indigo-400">Open dashboard <span aria-hidden="true">→</span></a>
       {% else %}
-        <a href="/login" class="px-4 py-2 text-slate-300 hover:text-white">Log in</a>
-        <a href="/register" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium hover:bg-indigo-400">Get started</a>
+        <a href="/login" class="rounded-xl px-3 py-2 text-slate-300 hover:text-white">Log in</a>
+        <a href="/register" class="rounded-xl bg-indigo-500 px-4 py-2.5 font-semibold text-white hover:bg-indigo-400">Get started</a>
       {% endif %}
     </nav>
   </header>
 
-  <main class="mx-auto max-w-6xl px-6">
-    <section class="py-20 text-center">
-      <p class="mb-4 inline-block rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-400">
-        WebSockets · live presence · zero page reloads
-      </p>
-      <h1 class="mx-auto max-w-3xl text-5xl font-bold leading-tight tracking-tight">
-        One shared space your whole team edits
-        <span class="bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">together, live.</span>
-      </h1>
-      <p class="mx-auto mt-6 max-w-2xl text-lg text-slate-400">
-        Kanban boards, collaborative docs, a shared whiteboard, and team chat — all in real
-        time over a single WebSocket per workspace. See who's online and where their cursor is.
-      </p>
-      <div class="mt-8 flex justify-center gap-3">
-        <a href="{{ '/dashboard' if user else '/register' }}"
-           class="rounded-lg bg-indigo-500 px-6 py-3 font-medium hover:bg-indigo-400">
-          {{ 'Go to your workspaces' if user else 'Start collaborating — free' }}
-        </a>
-        <a href="#features" class="rounded-lg border border-slate-700 px-6 py-3 font-medium hover:border-slate-500">
-          See features
-        </a>
+  <main class="mx-auto max-w-6xl px-5 sm:px-6">
+    <section class="grid items-center gap-12 py-14 sm:py-20 lg:grid-cols-[1.1fr_.9fr]">
+      <div>
+        <p class="mb-5 inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1.5 text-xs font-medium text-slate-300">
+          <span class="h-2 w-2 rounded-full bg-emerald-400"></span> REAL-TIME TEAM WORKSPACE
+        </p>
+        <h1 class="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight sm:text-6xl">
+          One shared space your whole team edits
+          <span class="bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">together, live.</span>
+        </h1>
+        <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-400">
+          Keep project planning, collaborative documents, whiteboarding, and team chat together. Presence and shared updates help teammates follow work as it changes.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="{{ '/dashboard' if user else '/register' }}" class="rounded-xl bg-indigo-500 px-5 py-3 font-semibold text-white shadow-lg shadow-indigo-950/30 hover:bg-indigo-400">
+            {{ 'Go to your workspaces' if user else 'Start collaborating' }} <span aria-hidden="true">→</span>
+          </a>
+          <a href="#features" class="rounded-xl border border-slate-700 px-5 py-3 font-semibold text-slate-200 hover:border-indigo-400/60 hover:bg-slate-900">Explore features</a>
+        </div>
+        <p class="mt-4 text-xs leading-5 text-slate-500">For a live demo, open two browser sessions, create a workspace, and invite a teammate with its invite code.</p>
+      </div>
+      <div class="rounded-3xl border border-slate-700/80 bg-slate-900/80 p-4 shadow-2xl shadow-black/20 sm:p-5">
+        <div class="flex items-center justify-between border-b border-slate-700 pb-4">
+          <div><p class="font-semibold">Workspace overview</p><p class="mt-1 text-xs text-slate-500">A preview of the collaboration surfaces</p></div>
+          <span class="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-xs text-emerald-300">Live updates</span>
+        </div>
+        <div class="mt-4 grid grid-cols-2 gap-3">
+          <div class="rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
+            <span class="text-2xl">▤</span><p class="mt-3 text-sm font-semibold">Kanban board</p><p class="mt-1 text-xs leading-5 text-slate-400">Move cards between lists</p>
+            <div class="mt-3 space-y-2"><div class="h-2 rounded-full bg-indigo-400/60"></div><div class="h-2 w-3/4 rounded-full bg-slate-700"></div></div>
+          </div>
+          <div class="rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
+            <span class="text-2xl">✎</span><p class="mt-3 text-sm font-semibold">Shared docs</p><p class="mt-1 text-xs leading-5 text-slate-400">Write and preview Markdown</p>
+            <div class="mt-3 space-y-2"><div class="h-2 w-4/5 rounded-full bg-slate-700"></div><div class="h-2 rounded-full bg-pink-400/50"></div></div>
+          </div>
+          <div class="rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
+            <span class="text-2xl">⌗</span><p class="mt-3 text-sm font-semibold">Whiteboard</p><p class="mt-1 text-xs leading-5 text-slate-400">Arrange shared notes and shapes</p>
+          </div>
+          <div class="rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
+            <span class="text-2xl">◉</span><p class="mt-3 text-sm font-semibold">Team presence</p><p class="mt-1 text-xs leading-5 text-slate-400">See teammates and activity</p>
+            <div class="mt-3 flex -space-x-1"><span class="grid h-6 w-6 place-items-center rounded-full border-2 border-slate-950 bg-indigo-500 text-[10px]">A</span><span class="grid h-6 w-6 place-items-center rounded-full border-2 border-slate-950 bg-pink-500 text-[10px]">B</span><span class="grid h-6 w-6 place-items-center rounded-full border-2 border-slate-950 bg-cyan-500 text-[10px]">C</span></div>
+          </div>
+        </div>
+        <p class="mt-3 text-[11px] text-slate-500">Illustrative preview — not a live workspace session.</p>
       </div>
     </section>
 
-    <section id="features" class="grid gap-4 pb-24 sm:grid-cols-2 lg:grid-cols-4">
-      {% set cards = [
-        ("🗂️", "Kanban boards", "Drag cards across lists and watch them move on every screen instantly."),
-        ("📝", "Live docs", "Co-author markdown with live cursors and last-write-wins sync."),
-        ("🎨", "Whiteboard", "Sticky notes and shapes you can drag around together."),
-        ("💬", "Chat & presence", "Team chat, an activity feed, and avatars of who's online."),
-      ] %}
-      {% for icon, title, body in cards %}
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-          <div class="text-3xl">{{ icon }}</div>
-          <h3 class="mt-3 font-semibold">{{ title }}</h3>
-          <p class="mt-1 text-sm text-slate-400">{{ body }}</p>
-        </div>
-      {% endfor %}
+    <section id="features" class="border-t border-slate-800 py-12 sm:py-16">
+      <div class="mb-7 max-w-2xl"><p class="text-xs font-bold uppercase tracking-[.2em] text-indigo-300">One workspace, connected surfaces</p><h2 class="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">Keep the work and conversation together</h2><p class="mt-3 leading-7 text-slate-400">Shared updates are delivered over a workspace WebSocket, while HTTP serves the initial surface views.</p></div>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {% set cards = [
+          ("🗂️", "Kanban boards", "Move cards across lists and track assignees, due dates, labels, checklists, and comments."),
+          ("📝", "Collaborative docs", "Edit Markdown together, preview changes, and browse or restore document versions."),
+          ("🎨", "Shared whiteboard", "Arrange sticky notes and shapes, draw, add text, and follow remote cursors."),
+          ("💬", "Chat & presence", "Use workspace chat, activity updates, online presence, and in-app notifications.")
+        ] %}
+        {% for icon, title, body in cards %}
+        <article class="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 transition hover:-translate-y-0.5 hover:border-indigo-400/40 hover:bg-slate-900">
+          <div class="text-3xl">{{ icon }}</div><h3 class="mt-4 font-semibold">{{ title }}</h3><p class="mt-2 text-sm leading-6 text-slate-400">{{ body }}</p>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="mb-14 rounded-3xl border border-slate-800 bg-gradient-to-r from-indigo-950/60 to-slate-900 p-6 sm:p-8">
+      <div class="flex flex-wrap items-center justify-between gap-5"><div><h2 class="text-xl font-bold">Try a two-person collaboration</h2><p class="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Create a workspace, open a second browser session, and share the invite code to explore the live workflow.</p></div><a href="{{ '/dashboard' if user else '/register' }}" class="rounded-xl bg-indigo-500 px-5 py-3 font-semibold text-white hover:bg-indigo-400">{{ 'Open dashboard' if user else 'Create an account' }} →</a></div>
     </section>
   </main>
 </div>
