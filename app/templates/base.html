@@ -3,13 +3,24 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#090d18" />
+    <meta name="color-scheme" content="dark" />
     <title>{% block title %}{{ app_name }}{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <link rel="stylesheet" href="/static/css/app.css" />
+    <style>
+      :root { color-scheme: dark; --page:#090d18; --surface:#131b2d; --line:rgba(148,163,184,.18); --text:#e8eef9; --muted:#9ba9bf; --accent:#8b7cff; }
+      html { background:var(--page); scroll-behavior:smooth; }
+      body { background:radial-gradient(ellipse at 12% 0%,rgba(91,76,220,.16),transparent 36rem),radial-gradient(ellipse at 92% 8%,rgba(14,165,233,.08),transparent 30rem),var(--page); color:var(--text); }
+      a,button,input,textarea,select { transition:color .18s ease,background-color .18s ease,border-color .18s ease,box-shadow .18s ease; }
+      a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible { outline:2px solid #a69aff; outline-offset:3px; }
+      ::selection { background:rgba(139,124,255,.35); }
+      @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition-duration:.01ms!important; animation-duration:.01ms!important; } }
+    </style>
     {% block head %}{% endblock %}
   </head>
-  <body class="h-full bg-slate-950 text-slate-100 antialiased">
+  <body class="min-h-full bg-slate-950 text-slate-100 antialiased">
     {% block body %}{% endblock %}
   </body>
 </html>
